@@ -299,7 +299,7 @@ function drawHealthBars() {
   rect(10, 10, health1, 20); // 當前血量
   fill(0); // 黑色文字
   textSize(16);
-  text("角色一", 115, 27); // 角色1標籤
+  text("角色一", 120, 27); // 角色1標籤
 
   // 繪製角色2的血量條
   fill(255, 0, 0);
