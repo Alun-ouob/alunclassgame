@@ -334,6 +334,9 @@ function drawLOGO() {
   fill(0);
   textSize(200);
   text("教  科", windowWidth/2+243, windowHeight/2-294);
+  fill(255);
+  textSize(100);
+  text("T    K    U", windowWidth/2+200, windowHeight/2-190);
 }
 
 function keyPressed() {
