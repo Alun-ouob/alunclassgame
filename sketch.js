@@ -260,7 +260,20 @@ function updateCharacter(character) {
   let characterY = character === 1 ? characterY1 : characterY2;
   let isJumping = character === 1 ? isJumping1 : isJumping2;
   let velocityY = character === 1 ? velocityY1 : velocityY2;
+  if (characterX1 < -width / 2+50) {
+    characterX1 = -width / 2+50; // 不允許超出左邊界
+  }
+  if (characterX1 > width / 2 - 50) { // 假設角色寬度為50
+    characterX1 = width / 2 - 50; // 不允許超出右邊界
+  }
 
+  // 邊界檢查：確保角色2不超出畫面
+  if (characterX2 < -width / 2+50) {
+    characterX2 = -width / 2+50; // 不允許超出左邊界
+  }
+  if (characterX2 > width / 2 - 50) { // 假設角色寬度為50
+    characterX2 = width / 2 - 50; // 不允許超出右邊界
+  }
   // 處理跳躍物理
   if (isJumping) {
     velocityY += GRAVITY;
