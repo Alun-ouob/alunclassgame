@@ -156,7 +156,7 @@ class AttackEffect {
 
 function draw() {
   image(backgroundImage, 0, 0, width, height);
-  
+  drawControls()
   // 繪製地板
   stroke(0);
   strokeWeight(2);
@@ -176,7 +176,7 @@ function draw() {
     attackEffect2.update();
     attackEffect2.draw();
   }
-
+ 
   // 繪製角色1
   drawCharacter(1);
   // 繪製角色2
@@ -291,25 +291,37 @@ function drawCharacter(character) {
   }
 }
 
+
+
 function drawHealthBars() {
   // 繪製角色1的血量條
   fill(255, 0, 0);
-  rect(10, 10, 100, 20); // 背景
+  rect(characterX1+905, characterY1 +350, 100, 20); // 背景
   fill(0, 255, 0);
-  rect(10, 10, health1, 20); // 當前血量
+  rect(characterX1+905, characterY1 +350, health1, 20); // 當前血量
   fill(0); // 黑色文字
   textSize(16);
-  text("角色一", 115, 27); // 角色1標籤
+  text("角色一", characterX1 + 980, characterY1+400); // 角色1標籤
 
   // 繪製角色2的血量條
   fill(255, 0, 0);
-  rect(width - 110, 10, 100, 20); // 背景
+  rect(characterX2+907, characterY2 +350, 100, 20); // 背景
   fill(0, 255, 0);
-  rect(width - 110, 10, health2, 20); // 當前血量
+  rect(characterX2+907, characterY2 +350, health2, 20); // 當前血量
   fill(0); // 黑色文字
   textSize(16);
-  text("角色二", width - 165, 27); // 角色2標籤
+  text("角色二", characterX2 +980, characterY2 +400); // 角色2標籤
 }
+
+function drawControls() {
+  fill(255);
+  textSize(20);
+  textAlign(LEFT);
+  text("角色一控制: 上箭頭 (跳), 左/右箭頭 (移動), 1 (攻擊1), 2 (位移)", 20, height - 900);
+  textAlign(RIGHT);
+  text("角色二控制: W (跳), A/D (移動), J (攻擊1), K (位移)", width - 20, height - 900);
+}
+
 
 function keyPressed() {
   // 如果遊戲結束，按下 R 鍵重製
