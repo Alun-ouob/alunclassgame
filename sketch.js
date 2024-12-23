@@ -17,7 +17,7 @@ let isJumping2 = false;  // 角色2 跳躍狀態
 let moveDistance = 100; // 設定移動距離
 let moveDistance2 = 100; // 設定2移動距離
 let backgroundImage; 
-const GRAVITY = 0.8;     // 重力
+const GRAVITY = 0.5;     // 重力
 const JUMP_FORCE = -15;  // 跳躍力度
 const MOVE_SPEED = 5;    // 移動速度
 let floorY;              // 地板Y座標
@@ -69,7 +69,7 @@ function setup() {
   // 為角色1設置動畫參數
   animations.character1 = {
     stance: createAnimation(spriteSheets.character1.stance, 88, 109, 9, 10),
-    jump: createAnimation(spriteSheets.character1.jump, 86, 123, 5, 10),
+    jump: createAnimation(spriteSheets.character1.jump, 86, 123, 5, 15),
     run: createAnimation(spriteSheets.character1.run, 88, 90, 6, 5),
     explotion: createAnimation(spriteSheets.character1.explotion, 185, 192, 11, 8),
     attack1: createAnimation(spriteSheets.character1.attack1, 140, 172, 10, 2),
@@ -80,7 +80,7 @@ function setup() {
   // 為角色2設置動畫參數
   animations.character2 = {
     stance: createAnimation(spriteSheets.character2.stance, 114.444444444, 86, 9, 10),
-    jump: createAnimation(spriteSheets.character2.jump, 106, 123, 5, 10),
+    jump: createAnimation(spriteSheets.character2.jump, 106, 123, 5, 15),
     run: createAnimation(spriteSheets.character2.run, 88, 90, 6, 100),
     explotion: createAnimation(spriteSheets.character2.explotion, 184.545454545, 192, 11, 8),
     attack1: createAnimation(spriteSheets.character2.attack1, 132.444444444, 153, 10, 3),
