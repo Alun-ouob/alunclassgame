@@ -14,16 +14,17 @@ let velocityY1 = 0;      // 角色1 Y軸速度
 let velocityY2 = 0;      // 角色2 Y軸速度
 let isJumping1 = false;  // 角色1 跳躍狀態
 let isJumping2 = false;  // 角色2 跳躍狀態
+let moveDistance = 100; // 設定移動距離
+let moveDistance2 = 100; // 設定2移動距離
 let backgroundImage; 
 const GRAVITY = 0.8;     // 重力
 const JUMP_FORCE = -15;  // 跳躍力度
 const MOVE_SPEED = 5;    // 移動速度
 let floorY;              // 地板Y座標
-let attackEffect1;       // 角色1 攻擊特效物件
-let attackEffect2;       // 角色2 攻擊特效物件
+let attackEffects = [];   // 攻擊特效物件陣列
 const FLOOR_HEIGHT = 100; // 地板距離底部的高度
-const ATTACK_MOVE_DISTANCE = 100; // 攻擊移動距離
-const ATTACK_EFFECT_SPEED = 8;    // 攻擊特效移動速度
+const ATTACK_MOVE_DISTANCE = 500; // 攻擊移動距離
+const ATTACK_EFFECT_SPEED = 7;    // 攻擊特效移動速度
 
 let isRunning1 = false; // 角色1是否在跑步
 let isRunning2 = false; // 角色2是否在跑步
@@ -73,7 +74,7 @@ function setup() {
     explotion: createAnimation(spriteSheets.character1.explotion, 185, 192, 11, 8),
     attack1: createAnimation(spriteSheets.character1.attack1, 140, 172, 10, 2),
     attack2: createAnimation(spriteSheets.character1.attack2, 132, 153, 9, 5),
-    attackEffect: createAnimation(spriteSheets.character1.attackEffect, 63, 123, 6, 50)
+    attackEffect: createAnimation(spriteSheets.character1.attackEffect, 63, 123, 1, 500)
   };
 
   // 為角色2設置動畫參數
@@ -84,7 +85,7 @@ function setup() {
     explotion: createAnimation(spriteSheets.character2.explotion, 184.545454545, 192, 11, 8),
     attack1: createAnimation(spriteSheets.character2.attack1, 132.444444444, 153, 10, 3),
     attack2: createAnimation(spriteSheets.character2.attack2, 116, 116, 9, 5),
-    attackEffect: createAnimation(spriteSheets.character2.attackEffect, 67, 64, 6, 50)
+    attackEffect: createAnimation(spriteSheets.character2.attackEffect, 67, 64, 1, 500)
   };
 
   currentAnimation1 = animations.character1.stance; // 初始動畫為角色1的站立
@@ -102,29 +103,42 @@ function createAnimation(sheet, frameWidth, frameHeight, frames, frameDelay) {
   };
 }
 
-// 攻擊特效類
 class AttackEffect {
   constructor(x, y, facingRight, character) {
     this.x = x;
     this.y = y;
     this.facingRight = facingRight;
-    this.animation = character === 1 ? animations.character1.attackEffect : animations.character2.attackEffect; // 根據角色決定動畫
+    this.character = character;
+    this.animation = character === 1 ? animations.character1.attackEffect : animations.character2.attackEffect;
     this.frameIndex = 0;
     this.active = true;
+    this.distanceMoved = 0;
   }
 
   update() {
+    // 根據角色的朝向移動攻擊特效
     this.x += (this.facingRight ? ATTACK_EFFECT_SPEED : -ATTACK_EFFECT_SPEED);
-    
-    // 檢查攻擊特效是否與對方角色重疊
-    if (this.facingRight && this.x > characterX2 - 50 && this.x < characterX2 + 50 && this.y === characterY2) {
-      if (health2 > 0) health2 -= 10; // 扣除角色2血量
-      this.active = false; // 攻擊特效消失
-    } else if (!this.facingRight && this.x < characterX1 + 50 && this.x > characterX1 - 50 && this.y === characterY1) {
-      if (health1 > 0) health1 -= 10; // 扣除角色1血量
-      this.active = false; // 攻擊特效消失
+    this.distanceMoved += ATTACK_EFFECT_SPEED;
+
+    // 碰撞檢測
+    if (this.facingRight) {
+      if (this.x > characterX2 - 50 && this.x < characterX2 + 50 && this.y === characterY2) {
+        if (health2 > 0) health2 -= 10; // 扣除角色2血量
+        this.active = false; // 攻擊特效消失
+      }
+    } else {
+      if (this.x < characterX1 + 50 && this.x > characterX1 - 50 && this.y === characterY1) {
+        if (health1 > 0) health1 -= 10; // 扣除角色1血量
+        this.active = false; // 攻擊特效消失
+      }
     }
 
+    // 如果攻擊特效移動超過一定距離，則消失
+    if (this.distanceMoved >= ATTACK_MOVE_DISTANCE) {
+      this.active = false;
+    }
+
+    // 更新動畫幀
     if (frameCount % this.animation.frameDelay === 0) {
       this.frameIndex++;
       if (this.frameIndex >= this.animation.frames) {
@@ -137,7 +151,7 @@ class AttackEffect {
     push();
     translate(width / 2 + this.x, height / 2 + this.y);
     if (!this.facingRight) {
-      scale(-1, 1);
+      scale(-1, 1); // 如果角色面向左側，則翻轉
     }
     image(
       this.animation.sheet,
@@ -154,10 +168,42 @@ class AttackEffect {
   }
 }
 
+
+
 function draw() {
   image(backgroundImage, 0, 0, width, height);
-  drawControls()
-  drawLOGO()
+  if (gameOver) {
+    // 當遊戲結束時，畫面變成全灰
+    background(128); // 灰色背景
+    fill(0); // 黑色文字
+    textSize(32);
+    textAlign(CENTER);
+    text(`贏家是: ${winner}`, width / 2, height / 2 - 20);
+    textSize(24);
+    text("按下 R 鍵即可重製遊戲", width / 2, height / 2 + 20);
+  // 繪製 "TKUET" 文字
+    fill(255); // 設定文字顏色為白色
+    textSize(100); // 設定文字大小
+    textAlign(CENTER); // 文字居中對齊
+    text("TKUET", width / 2, height / 2 - 250); // 在畫面正中間上方顯示文字
+    return; // 退出函數，避免繪製其他內容
+  }
+  // 繪製 "TKUET" 文字
+  fill(255); // 設定文字顏色為白色
+  textSize(100); // 設定文字大小
+  textAlign(CENTER); // 文字居中對齊
+  text("TKUET", width / 2, height / 2 - 250); // 在畫面正中間上方顯示文字
+  //角色操作方式
+  fill(0); // 設定文字顏色為白色
+  textSize(20); // 設定文字大小
+  textAlign(LEFT); // 文字居中對齊
+  text("操作方式：上跳躍、下回血、左右移動、1發射攻擊、2位移", width/2-width/2.1, height / 2 - 250);
+  //角色操作方式
+  fill(0); // 設定文字顏色為白色
+  textSize(20); // 設定文字大小
+  textAlign(RIGHT); // 文字居中對齊
+  text("操作方式：w跳躍、s回血、ad移動、j發射攻擊、k位移", width/2+width/2.1, height / 2 - 250);
+
   // 繪製地板
   stroke(0);
   strokeWeight(2);
@@ -168,16 +214,17 @@ function draw() {
   // 更新角色2的物理
   updateCharacter(2);
 
-  // 繪製攻擊特效
-  if (attackEffect1 && attackEffect1.active) {
-    attackEffect1.update();
-    attackEffect1.draw();
+  // 更新和繪製攻擊特效
+  for (let i = attackEffects.length - 1; i >= 0; i--) {
+    let effect = attackEffects[i];
+    if (effect.active) {
+      effect.update();
+      effect.draw();
+    } else {
+      attackEffects.splice(i, 1); // 移除不活躍的攻擊特效
+    }
   }
-  if (attackEffect2 && attackEffect2.active) {
-    attackEffect2.update();
-    attackEffect2.draw();
-  }
- 
+
   // 繪製角色1
   drawCharacter(1);
   // 繪製角色2
@@ -192,15 +239,6 @@ function draw() {
     winner = health1 <= 0 ? '角色二' : '角色一';
   }
 
-  // 如果遊戲結束，顯示贏家和重製按鈕
-  if (gameOver) {
-    fill(0);
-    textSize(32);
-    textAlign(CENTER);
-    text(`贏家是: ${winner}`, width / 2, height / 2 - 20);
-    textSize(24);
-    text("按下 R 鍵重製遊戲", width / 2, height / 2 + 20);
-  }
 
   // 持續移動角色1
   if (isRunning1) {
@@ -292,52 +330,29 @@ function drawCharacter(character) {
   }
 }
 
-
-
 function drawHealthBars() {
   // 繪製角色1的血量條
   fill(255, 0, 0);
-  rect(characterX1+905, characterY1 +350, 100, 20); // 背景
+  rect(characterX1 + width / 2 - 50, characterY1 + height / 2 - 80, 100, 20); // 背景
   fill(0, 255, 0);
-  rect(characterX1+905, characterY1 +350, health1, 20); // 當前血量
+  rect(characterX1 + width / 2 - 50, characterY1 + height / 2 - 80, health1, 20); // 當前血量
   fill(0); // 黑色文字
-  textSize(16);
-  text("角色一", characterX1 + 980, characterY1+400); // 角色1標籤
+  textSize(20);
+  textAlign(CENTER); // 文字居中
+  text("角色一", characterX1 + width / 2, characterY1 + height / 2 - 90); // 角色1標籤
 
   // 繪製角色2的血量條
   fill(255, 0, 0);
-  rect(characterX2+907, characterY2 +350, 100, 20); // 背景
+  rect(characterX2 + width / 2 - 50, characterY2 + height / 2 - 80, 100, 20); // 背景
   fill(0, 255, 0);
-  rect(characterX2+907, characterY2 +350, health2, 20); // 當前血量
+  rect(characterX2 + width / 2 - 50, characterY2 + height / 2 - 80, health2, 20); // 當前血量
   fill(0); // 黑色文字
-  textSize(16);
-  text("角色二", characterX2 +980, characterY2 +400); // 角色2標籤
-}
-
-function drawControls() {
-  fill(255);
   textSize(20);
-  textAlign(LEFT);
-  text("角色一控制: 上箭頭 (跳), 左/右箭頭 (移動), 1 (攻擊1), 2 (位移)", 20, height - 900);
-  textAlign(RIGHT);
-  text("角色二控制: W (跳), A/D (移動), J (攻擊1), K (位移)", width - 20, height - 900);
+  textAlign(CENTER); // 文字居中
+  text("角色二", characterX2 + width / 2, characterY2 + height / 2 - 90); // 角色2標籤
 }
 
-function drawLOGO() {
-  fill(255)
-  rect(1005,0,200,200)
-  fill(255)
-  rect(695,0,200,200)
-  fill(255);
-  textSize(200);
-  text("教  科", windowWidth/2+250, windowHeight/2-300);
-  fill(0);
-  textSize(200);
-  text("教  科", windowWidth/2+243, windowHeight/2-294);
-  fill(255);
-  textSize(100);
-  text("T    K    U", windowWidth/2+200, windowHeight/2-190);
-}
+
 
 function keyPressed() {
   // 如果遊戲結束，按下 R 鍵重製
@@ -347,7 +362,7 @@ function keyPressed() {
   }
 
   // 角色1控制
-  if (keyCode === UP_ARROW && !isJumping1 && !isAnimating1) {
+  if (keyCode === UP_ARROW && !isJumping1) {
     velocityY1 = JUMP_FORCE;
     isJumping1 = true;
     currentAnimation1 = animations.character1.jump;
@@ -357,28 +372,22 @@ function keyPressed() {
     currentAnimation1 = animations.character1.explotion;
     currentAnimation1.frameIndex = 0;
     isAnimating1 = true;
+    recoverHealth(1); // 角色1爆氣時回復血量
   } else if (key === '1' && !isAnimating1) {
     currentAnimation1 = animations.character1.attack1;
     currentAnimation1.frameIndex = 0;
     isAnimating1 = true;
     let effectX = characterX1 + (facingRight1 ? 100 : -100);
-    attackEffect1 = new AttackEffect(effectX, characterY1, facingRight1, 1);
+    attackEffects.push(new AttackEffect(effectX, characterY1, facingRight1, 1));
   } else if (key === '2' && !isAnimating1) {
     currentAnimation1 = animations.character1.attack2;
     currentAnimation1.frameIndex = 0;
     isAnimating1 = true;
-    let moveDistance = facingRight1 ? ATTACK_MOVE_DISTANCE : -ATTACK_MOVE_DISTANCE;
-    characterX1 += moveDistance;
-  } else if (keyCode === LEFT_ARROW) { // 左鍵移動
-    isRunning1 = true; // 設定角色1為跑步狀態
-    facingRight1 = false; // 改變角色朝向
-  } else if (keyCode === RIGHT_ARROW) { // 右鍵移動
-    isRunning1 = true; // 設定角色1為跑步狀態
-    facingRight1 = true; // 改變角色朝向
+    characterX1 += (facingRight1 ? moveDistance : -moveDistance); // 根據角色朝向移動
   }
 
   // 角色2控制
-  if (key === 'w' && !isJumping2 && !isAnimating2) {
+  if (key === 'w' && !isJumping2) {
     velocityY2 = JUMP_FORCE;
     isJumping2 = true;
     currentAnimation2 = animations.character2.jump;
@@ -388,55 +397,113 @@ function keyPressed() {
     currentAnimation2 = animations.character2.explotion;
     currentAnimation2.frameIndex = 0;
     isAnimating2 = true;
-  } else if (key === 'a') { // 按下 'a' 鍵移動
-    isRunning2 = true; // 設定角色2為跑步狀態
-    facingRight2 = false; // 改變角色朝向
-  } else if (key === 'd') { // 按下 'd' 鍵移動
-    isRunning2 = true; // 設定角色2為跑步狀態
-    facingRight2 = true; // 改變角色朝向
-  } else if (key === 'j' && !isAnimating2) { // 按下 'j' 鍵觸發3attack
-    currentAnimation2 = animations.character2.attack1; // 使用3attack動畫
+    recoverHealth(2); // 角色2爆氣時回復血量
+  } else if (key === 'j' && !isAnimating2) {
+    currentAnimation2 = animations.character2.attack1;
     currentAnimation2.frameIndex = 0;
     isAnimating2 = true;
     let effectX = characterX2 + (facingRight2 ? 100 : -100);
-    attackEffect2 = new AttackEffect(effectX, characterY2, facingRight2, 2);
-  } else if (key === 'k' && !isAnimating2) { // 按下 'k' 鍵觸發4attack
-    currentAnimation2 = animations.character2.attack2; // 使用4attack動畫
+    attackEffects.push(new AttackEffect(effectX, characterY2, facingRight2, 2));
+  } else if (key === 'k' && !isAnimating2) {
+    currentAnimation2 = animations.character2.attack2;
     currentAnimation2.frameIndex = 0;
     isAnimating2 = true;
-    let moveDistance = facingRight2 ? ATTACK_MOVE_DISTANCE : -ATTACK_MOVE_DISTANCE;
-    characterX2 += moveDistance;
+    characterX2 += (facingRight2 ? moveDistance2 : -moveDistance2); // 根據角色朝向移動
+  }
+
+  // 控制角色1的移動
+  if (keyCode === LEFT_ARROW) {
+    facingRight1 = false;
+    isRunning1 = true;
+  } else if (keyCode === RIGHT_ARROW) {
+    facingRight1 = true;
+    isRunning1 = true;
+  }
+
+  // 控制角色2的移動
+  if (key === 'a') {
+    facingRight2 = false;
+    isRunning2 = true;
+  } else if (key === 'd') {
+    facingRight2 = true;
+    isRunning2 = true;
   }
 }
 
 function keyReleased() {
-  // 角色1停止跑步
+  // 停止角色1的移動
   if (keyCode === LEFT_ARROW || keyCode === RIGHT_ARROW) {
     isRunning1 = false;
     currentAnimation1 = animations.character1.stance; // 返回站立動畫
   }
 
-  // 角色2停止跑步
+  // 停止角色2的移動
   if (key === 'a' || key === 'd') {
     isRunning2 = false;
     currentAnimation2 = animations.character2.stance; // 返回站立動畫
   }
 }
 
-// 重置遊戲
+function recoverHealth(character) {
+  if (character === 1) {
+    health1 = Math.min(health1 + 10, 100); // 角色1回復5滴血，最多不超過100
+  } else if (character === 2) {
+    health2 = Math.min(health2 + 10, 100); // 角色2回復5滴血，最多不超過100
+  }
+}
+
+// 更新角色位置的函數
+function updateCharacterPosition() {
+  // 更新角色1的位置
+  if (isRunning1) {
+    characterX1 += facingRight1 ? MOVE_SPEED : -MOVE_SPEED;
+  }
+  // 更新角色1的Y軸位置
+  characterY1 += velocityY1;
+  velocityY1 += GRAVITY; // 應用重力
+
+  // 更新角色2的位置
+  if (isRunning2) {
+    characterX2 += facingRight2 ? MOVE_SPEED : -MOVE_SPEED;
+  }
+  // 更新角色2的Y軸位置
+  characterY2 += velocityY2;
+  velocityY2 += GRAVITY; // 應用重力
+
+  // 確保角色不會掉出地板
+  if (characterY1 >= floorY) {
+    characterY1 = floorY;
+    isJumping1 = false;
+  }
+  if (characterY2 >= floorY) {
+    characterY2 = floorY;
+    isJumping2 = false;
+  }
+}
+
+
+
 function resetGame() {
   health1 = 100;
   health2 = 100;
-  gameOver = false;
-  winner = '';
   characterX1 = -700;
+  characterY1 = floorY - height / 2;
   characterX2 = 700;
-  velocityY1 = 0;
-  velocityY2 = 0;
+  characterY2 = floorY - height / 2;
   isJumping1 = false;
   isJumping2 = false;
   isAnimating1 = false;
   isAnimating2 = false;
+  isRunning1 = false;
+  isRunning2 = false;
+  gameOver = false;
+  winner = '';
   currentAnimation1 = animations.character1.stance;
   currentAnimation2 = animations.character2.stance;
+  attackEffects = []; // 清空攻擊特效
 }
+function windowResized() {
+  resizeCanvas(windowWidth, windowHeight);
+  floorY = height - FLOOR_HEIGHT; // 更新地板位置
+}
+
