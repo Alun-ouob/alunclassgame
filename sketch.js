@@ -324,7 +324,7 @@ function drawControls() {
 }
 
 function drawLOGO() {
-  fill(255)
+  fill(0)
   rect(1005,0,200,200)
   fill(255)
   rect(695,0,200,200)
