@@ -157,6 +157,7 @@ class AttackEffect {
 function draw() {
   image(backgroundImage, 0, 0, width, height);
   drawControls()
+  drawLOGO()
   // 繪製地板
   stroke(0);
   strokeWeight(2);
@@ -322,6 +323,18 @@ function drawControls() {
   text("角色二控制: W (跳), A/D (移動), J (攻擊1), K (位移)", width - 20, height - 900);
 }
 
+function drawLOGO() {
+  fill(255)
+  rect(1005,0,200,200)
+  fill(255)
+  rect(695,0,200,200)
+  fill(255);
+  textSize(200);
+  text("教  科", windowWidth/2+250, windowHeight/2-300);
+  fill(0);
+  textSize(200);
+  text("教  科", windowWidth/2+243, windowHeight/2-294);
+}
 
 function keyPressed() {
   // 如果遊戲結束，按下 R 鍵重製
