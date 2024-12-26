@@ -71,10 +71,10 @@ function setup() {
     stance: createAnimation(spriteSheets.character1.stance, 88, 109, 9, 10),
     jump: createAnimation(spriteSheets.character1.jump, 86, 123, 5, 15),
     run: createAnimation(spriteSheets.character1.run, 88, 90, 6, 5),
-    explotion: createAnimation(spriteSheets.character1.explotion, 185, 192, 11, 8),
+    explotion: createAnimation(spriteSheets.character1.explotion, 185, 192, 11, 3),
     attack1: createAnimation(spriteSheets.character1.attack1, 140, 172, 10, 2),
     attack2: createAnimation(spriteSheets.character1.attack2, 132, 153, 9, 5),
-    attackEffect: createAnimation(spriteSheets.character1.attackEffect, 63, 123, 1, 500)
+    attackEffect: createAnimation(spriteSheets.character1.attackEffect, 63, 123, 1, 700)
   };
 
   // 為角色2設置動畫參數
@@ -82,10 +82,10 @@ function setup() {
     stance: createAnimation(spriteSheets.character2.stance, 114.444444444, 86, 9, 10),
     jump: createAnimation(spriteSheets.character2.jump, 106, 123, 5, 15),
     run: createAnimation(spriteSheets.character2.run, 88, 90, 6, 100),
-    explotion: createAnimation(spriteSheets.character2.explotion, 184.545454545, 192, 11, 8),
+    explotion: createAnimation(spriteSheets.character2.explotion, 184.545454545, 192, 11, 3),
     attack1: createAnimation(spriteSheets.character2.attack1, 132.444444444, 153, 10, 3),
     attack2: createAnimation(spriteSheets.character2.attack2, 116, 116, 9, 5),
-    attackEffect: createAnimation(spriteSheets.character2.attackEffect, 67, 64, 1, 500)
+    attackEffect: createAnimation(spriteSheets.character2.attackEffect, 67, 64, 1, 700)
   };
 
   currentAnimation1 = animations.character1.stance; // 初始動畫為角色1的站立
@@ -128,7 +128,7 @@ class AttackEffect {
       }
     } else {
       if (this.x < characterX1 + 50 && this.x > characterX1 - 50 && this.y === characterY1) {
-        if (health1 > 0) health1 -= 10; // 扣除角色1血量
+        if (health1 > 0) health1 -= 15; // 扣除角色1血量
         this.active = false; // 攻擊特效消失
       }
     }
